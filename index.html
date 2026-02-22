@@ -7,11 +7,7 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       background-color: #1a1a2e;
@@ -19,44 +15,56 @@
         repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(0,0,0,0.15) 32px),
         repeating-linear-gradient(90deg, transparent, transparent 31px, rgba(0,0,0,0.15) 32px);
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
       min-height: 100vh;
       font-family: 'Press Start 2P', monospace;
       color: #fff;
+      padding-bottom: 24px;
     }
 
-    #game-wrapper {
+    /* ─── TAB BAR ─── */
+    #tab-bar {
       display: flex;
-      gap: 20px;
-      align-items: flex-start;
+      gap: 4px;
+      margin: 18px 0 0;
+      z-index: 5;
     }
 
-    /* ── LEFT PANEL ── */
-    #left-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      width: 160px;
+    .tab-btn {
+      background: #3c3c3c;
+      border: 3px solid #555;
+      border-bottom-color: #1a1a1a;
+      color: #aaa;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      padding: 8px 18px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: background 0.1s, color 0.1s;
+      position: relative;
+      bottom: -3px;
+    }
+    .tab-btn:hover { background: #4a4a4a; color: #fff; }
+    .tab-btn.active {
+      background: #1e1e3a;
+      border-bottom-color: #1e1e3a;
+      color: #55ff55;
+      z-index: 1;
     }
 
-    /* ── CANVAS ── */
-    #game-canvas {
-      border: 4px solid #555;
-      border-right-color: #222;
-      border-bottom-color: #222;
-      image-rendering: pixelated;
-      display: block;
+    /* ─── TAB PANELS ─── */
+    .tab-panel {
+      display: none;
+      padding: 20px;
+      border: 3px solid #555;
+      background: rgba(0,0,0,0.18);
+      overflow-x: auto;
     }
+    .tab-panel.active { display: block; }
 
-    /* ── RIGHT PANEL ── */
-    #right-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      width: 160px;
-    }
-
+    /* ─── SHARED COMPONENTS ─── */
     .mc-panel {
       background: #3c3c3c;
       border: 3px solid #555;
@@ -64,7 +72,6 @@
       border-bottom-color: #1a1a1a;
       padding: 10px;
     }
-
     .mc-panel h3 {
       font-size: 7px;
       color: #aaa;
@@ -72,71 +79,7 @@
       text-transform: uppercase;
       letter-spacing: 1px;
     }
-
-    .mc-value {
-      font-size: 10px;
-      color: #ffff55;
-    }
-
-    #next-canvas {
-      display: block;
-      image-rendering: pixelated;
-      margin: 0 auto;
-    }
-
-    #title-banner {
-      text-align: center;
-      font-size: 9px;
-      color: #55ff55;
-      text-shadow: 2px 2px #1a5c1a, -1px -1px #000;
-      letter-spacing: 1px;
-      line-height: 1.6;
-    }
-
-    #title-banner span {
-      display: block;
-      font-size: 7px;
-      color: #aaaaaa;
-      margin-top: 4px;
-    }
-
-    #controls-list {
-      font-size: 6px;
-      color: #aaa;
-      line-height: 2.2;
-    }
-
-    #controls-list b {
-      color: #ffff55;
-    }
-
-    /* ── OVERLAY ── */
-    #overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.78);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 20px;
-      z-index: 10;
-    }
-
-    #overlay h1 {
-      font-size: 16px;
-      color: #55ff55;
-      text-shadow: 3px 3px #1a5c1a, -1px -1px #000;
-      text-align: center;
-      line-height: 1.8;
-    }
-
-    #overlay p {
-      font-size: 8px;
-      color: #ffff55;
-      text-align: center;
-      line-height: 2;
-    }
+    .mc-value { font-size: 10px; color: #ffff55; }
 
     .mc-btn {
       background: #5a5a5a;
@@ -152,11 +95,7 @@
       letter-spacing: 1px;
       transition: background 0.1s;
     }
-
-    .mc-btn:hover {
-      background: #6a6a6a;
-    }
-
+    .mc-btn:hover { background: #6a6a6a; }
     .mc-btn:active {
       border-color: #222;
       border-right-color: #888;
@@ -164,90 +103,341 @@
       background: #4a4a4a;
     }
 
-    #final-score {
-      font-size: 10px;
-      color: #55ffff;
+    /* ─── GAME OVERLAY ─── */
+    .game-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.78);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+      z-index: 10;
     }
+    .game-overlay h1 {
+      font-size: 14px;
+      color: #55ff55;
+      text-shadow: 3px 3px #1a5c1a, -1px -1px #000;
+      text-align: center;
+      line-height: 1.8;
+    }
+    .game-overlay p {
+      font-size: 7px;
+      color: #ffff55;
+      text-align: center;
+      line-height: 2;
+    }
+    .final-score { font-size: 10px; color: #55ffff; }
+
+    /* ─── SOLO TAB ─── */
+    #solo-layout {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      position: relative;
+    }
+    #solo-left {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 160px;
+    }
+    #solo-right {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 160px;
+    }
+    #title-banner {
+      text-align: center;
+      font-size: 9px;
+      color: #55ff55;
+      text-shadow: 2px 2px #1a5c1a, -1px -1px #000;
+      letter-spacing: 1px;
+      line-height: 1.6;
+    }
+    #title-banner span {
+      display: block;
+      font-size: 7px;
+      color: #aaa;
+      margin-top: 4px;
+    }
+    #controls-hint {
+      font-size: 6px;
+      color: #aaa;
+      line-height: 2.4;
+    }
+    #controls-hint b { color: #ffff55; }
+    .board-canvas {
+      image-rendering: pixelated;
+      display: block;
+      border: 4px solid #555;
+      border-right-color: #222;
+      border-bottom-color: #222;
+    }
+    .next-canvas {
+      display: block;
+      image-rendering: pixelated;
+      margin: 0 auto;
+    }
+
+    /* ─── VS TAB ─── */
+    #vs-layout {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      position: relative;
+    }
+    .vs-player {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .vs-hud {
+      background: #3c3c3c;
+      border: 3px solid #555;
+      border-right-color: #1a1a1a;
+      border-bottom-color: #1a1a1a;
+      padding: 6px 10px;
+      font-size: 6px;
+      color: #aaa;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .vs-player-label { font-size: 9px; color: #55ffff; }
+    .vs-stat { color: #ffff55; }
+    .vs-board-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .vs-canvas-wrap { position: relative; }
+    .vs-side {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .vs-badge {
+      align-self: center;
+      font-size: 18px;
+      color: #ff5555;
+      text-shadow: 2px 2px #7a0000;
+      text-align: center;
+      line-height: 1.8;
+      margin-top: 40px;
+      padding: 0 4px;
+    }
+
+    /* ─── CONTROLS TAB ─── */
+    #controls-layout {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    #controls-layout h2 {
+      font-size: 11px;
+      color: #55ff55;
+      text-shadow: 2px 2px #1a5c1a;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .controls-note {
+      font-size: 6px;
+      color: #888;
+      text-align: center;
+      margin-bottom: 16px;
+      line-height: 2.2;
+    }
+    #bindings-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 7px;
+      margin-bottom: 18px;
+    }
+    #bindings-table th {
+      background: #2a2a4a;
+      color: #55ff55;
+      padding: 10px 14px;
+      text-align: left;
+      border: 2px solid #555;
+      font-size: 7px;
+    }
+    #bindings-table td {
+      padding: 8px 14px;
+      border: 2px solid #444;
+      color: #ccc;
+      background: #2c2c2c;
+    }
+    #bindings-table tr:nth-child(even) td { background: #343434; }
+    .key-cell { cursor: pointer; transition: background 0.1s; }
+    .key-cell:hover { background: #4a4a4a !important; }
+    .key-badge {
+      display: inline-block;
+      background: #555;
+      border: 2px solid #888;
+      border-right-color: #222;
+      border-bottom-color: #222;
+      padding: 3px 7px;
+      color: #ffff55;
+      font-size: 7px;
+      min-width: 52px;
+      text-align: center;
+    }
+    .key-cell.listening .key-badge {
+      background: #5a3a00;
+      border-color: #ffaa00;
+      color: #ffaa00;
+      animation: blink 0.5s step-end infinite;
+    }
+    @keyframes blink { 50% { opacity: 0.4; } }
   </style>
 </head>
 <body>
 
-<!-- OVERLAY (start / game-over) -->
-<div id="overlay">
-  <h1>⛏ MINECRAFT<br>TETRIS ⛏</h1>
-  <p>Stack blocks, clear lines,<br>survive as long as you can!</p>
-  <button class="mc-btn" id="start-btn">▶ START GAME</button>
-</div>
+<!-- TAB BAR -->
+<nav id="tab-bar">
+  <button class="tab-btn active" data-tab="solo">⚔ SOLO</button>
+  <button class="tab-btn" data-tab="versus">👥 VS</button>
+  <button class="tab-btn" data-tab="controls">⚙ CONTROLS</button>
+</nav>
 
-<div id="game-wrapper">
-
-  <!-- LEFT PANEL -->
-  <div id="left-panel">
-    <div id="title-banner">
-      ⛏ TETRIS ⛏
-      <span>MINECRAFT EDITION</span>
+<!-- ══════════════════ SOLO TAB ══════════════════ -->
+<div id="tab-solo" class="tab-panel active">
+  <div id="solo-layout">
+    <div class="game-overlay" id="solo-overlay">
+      <h1>⛏ MINECRAFT<br>TETRIS ⛏</h1>
+      <p>Stack blocks, clear lines,<br>survive as long as you can!</p>
+      <button class="mc-btn" id="solo-start-btn">▶ START GAME</button>
     </div>
 
-    <div class="mc-panel">
-      <h3>Score</h3>
-      <div class="mc-value" id="score-display">0</div>
+    <div id="solo-left">
+      <div id="title-banner">⛏ TETRIS ⛏<span>MINECRAFT EDITION</span></div>
+      <div class="mc-panel"><h3>Score</h3><div class="mc-value" id="solo-score">0</div></div>
+      <div class="mc-panel"><h3>Level</h3><div class="mc-value" id="solo-level">1</div></div>
+      <div class="mc-panel"><h3>Lines</h3><div class="mc-value" id="solo-lines">0</div></div>
     </div>
 
-    <div class="mc-panel">
-      <h3>Level</h3>
-      <div class="mc-value" id="level-display">1</div>
-    </div>
+    <canvas id="solo-canvas" class="board-canvas" width="300" height="600"></canvas>
 
-    <div class="mc-panel">
-      <h3>Lines</h3>
-      <div class="mc-value" id="lines-display">0</div>
-    </div>
-  </div>
-
-  <!-- GAME CANVAS (10×20 @ 30px = 300×600) -->
-  <canvas id="game-canvas" width="300" height="600"></canvas>
-
-  <!-- RIGHT PANEL -->
-  <div id="right-panel">
-    <div class="mc-panel">
-      <h3>Next</h3>
-      <canvas id="next-canvas" width="120" height="120"></canvas>
-    </div>
-
-    <div class="mc-panel">
-      <h3>Controls</h3>
-      <div id="controls-list">
-        <b>←→</b> Move<br>
-        <b>↑</b> Rotate<br>
-        <b>↓</b> Soft Drop<br>
-        <b>Space</b> Hard Drop<br>
-        <b>P</b> Pause
+    <div id="solo-right">
+      <div class="mc-panel">
+        <h3>Next</h3>
+        <canvas id="solo-next" class="next-canvas" width="120" height="120"></canvas>
+      </div>
+      <div class="mc-panel">
+        <h3>Controls</h3>
+        <div id="controls-hint">
+          <b id="hint-left">A</b>/<b id="hint-right">D</b> Move<br>
+          <b id="hint-rotate">W</b> Rotate<br>
+          <b id="hint-soft">S</b> Soft Drop<br>
+          <b id="hint-hard">Shift</b> Hard Drop<br>
+          <b id="hint-pause">Q</b> Pause
+        </div>
       </div>
     </div>
   </div>
+</div>
 
+<!-- ══════════════════ VS TAB ══════════════════ -->
+<div id="tab-versus" class="tab-panel">
+  <div id="vs-layout">
+    <div class="game-overlay" id="vs-overlay">
+      <h1>👥 VS MODE 👥</h1>
+      <p id="vs-overlay-info"></p>
+      <p style="font-size:6px;color:#888">Customise keys in the Controls tab</p>
+      <button class="mc-btn" id="vs-start-btn">▶ START VS</button>
+    </div>
+
+    <!-- Player 1 -->
+    <div class="vs-player">
+      <div class="vs-hud">
+        <span class="vs-player-label">P1</span>
+        <span>Score: <span class="vs-stat" id="vs-p1-score">0</span></span>
+        <span>Lvl: <span class="vs-stat" id="vs-p1-level">1</span></span>
+        <span>Lines: <span class="vs-stat" id="vs-p1-lines">0</span></span>
+      </div>
+      <div class="vs-board-row">
+        <div class="vs-canvas-wrap">
+          <canvas id="vs-p1-canvas" class="board-canvas" width="200" height="400"></canvas>
+        </div>
+        <div class="vs-side">
+          <div class="mc-panel">
+            <h3>Next</h3>
+            <canvas id="vs-p1-next" class="next-canvas" width="80" height="80"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VS divider -->
+    <div class="vs-badge">⚔<br>VS<br>⚔</div>
+
+    <!-- Player 2 -->
+    <div class="vs-player">
+      <div class="vs-hud">
+        <span class="vs-player-label">P2</span>
+        <span>Score: <span class="vs-stat" id="vs-p2-score">0</span></span>
+        <span>Lvl: <span class="vs-stat" id="vs-p2-level">1</span></span>
+        <span>Lines: <span class="vs-stat" id="vs-p2-lines">0</span></span>
+      </div>
+      <div class="vs-board-row">
+        <div class="vs-canvas-wrap">
+          <canvas id="vs-p2-canvas" class="board-canvas" width="200" height="400"></canvas>
+        </div>
+        <div class="vs-side">
+          <div class="mc-panel">
+            <h3>Next</h3>
+            <canvas id="vs-p2-next" class="next-canvas" width="80" height="80"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ CONTROLS TAB ══════════════════ -->
+<div id="tab-controls" class="tab-panel">
+  <div id="controls-layout">
+    <h2>⚙ KEY BINDINGS ⚙</h2>
+    <p class="controls-note">
+      Click a key badge to rebind it — then press any key.<br>
+      Press <b>Escape</b> to cancel. Changes are saved automatically.
+    </p>
+    <table id="bindings-table">
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Player 1</th>
+          <th>Player 2</th>
+        </tr>
+      </thead>
+      <tbody id="bindings-tbody"></tbody>
+    </table>
+    <button class="mc-btn" id="reset-bindings-btn" style="display:block;margin:0 auto">↺ RESET DEFAULTS</button>
+  </div>
 </div>
 
 <script>
 // ─────────────────────────────────────────────
 //  CONSTANTS
 // ─────────────────────────────────────────────
-const COLS = 10;
-const ROWS = 20;
-const BLOCK = 30; // px per cell
-const TEXTURE_NOISE_ALPHA = 0.18; // opacity of noise pixels drawn over each block face
-const SWIPE_THRESHOLD = 20; // px — minimum swipe distance to register a gesture
+const COLS         = 10;
+const ROWS         = 20;
+const BLOCK_SOLO   = 30;
+const BLOCK_VS     = 20;
+const TEXTURE_NOISE_ALPHA = 0.18;
+const SWIPE_THRESHOLD     = 20;
+const SCORE_TABLE  = [0, 100, 300, 500, 800];
 
-// Minecraft block colours for each tetromino type
-// Each entry: [face, highlight, shadow]
 const BLOCK_COLORS = {
-  I: ['#4fc3f7', '#81d4fa', '#0288d1'],   // Blue Ice
-  O: ['#f9a825', '#fdd835', '#f57f17'],   // Gold Block
-  T: ['#ab47bc', '#ce93d8', '#6a1b9a'],   // Amethyst
-  S: ['#66bb6a', '#a5d6a7', '#2e7d32'],   // Grass Block
-  Z: ['#ef5350', '#ef9a9a', '#b71c1c'],   // Redstone Block
-  J: ['#1565c0', '#5e92f3', '#003c8f'],   // Lapis Block
-  L: ['#e65100', '#ff8a65', '#bf360c'],   // Magma / Netherrack
+  I: ['#4fc3f7', '#81d4fa', '#0288d1'],
+  O: ['#f9a825', '#fdd835', '#f57f17'],
+  T: ['#ab47bc', '#ce93d8', '#6a1b9a'],
+  S: ['#66bb6a', '#a5d6a7', '#2e7d32'],
+  Z: ['#ef5350', '#ef9a9a', '#b71c1c'],
+  J: ['#1565c0', '#5e92f3', '#003c8f'],
+  L: ['#e65100', '#ff8a65', '#bf360c'],
 };
 
 const SHAPES = {
@@ -260,442 +450,670 @@ const SHAPES = {
   L: [[0,0,1],[1,1,1],[0,0,0]],
 };
 
-const SCORE_TABLE = [0, 100, 300, 500, 800]; // 0-4 lines
+// ─────────────────────────────────────────────
+//  KEY BINDINGS
+// ─────────────────────────────────────────────
+const DEFAULT_BINDINGS = {
+  p1: { left:'KeyA', right:'KeyD', rotate:'KeyW', softDrop:'KeyS', hardDrop:'ShiftLeft', pause:'KeyQ' },
+  p2: { left:'ArrowLeft', right:'ArrowRight', rotate:'ArrowUp', softDrop:'ArrowDown', hardDrop:'Space', pause:'KeyP' },
+};
 
-// ─────────────────────────────────────────────
-//  CANVAS SETUP
-// ─────────────────────────────────────────────
-const canvas     = document.getElementById('game-canvas');
-const ctx        = canvas.getContext('2d');
-const nextCanvas = document.getElementById('next-canvas');
-const nextCtx    = nextCanvas.getContext('2d');
+const ACTION_LABELS = {
+  left:     'Move Left',
+  right:    'Move Right',
+  rotate:   'Rotate',
+  softDrop: 'Soft Drop',
+  hardDrop: 'Hard Drop',
+  pause:    'Pause',
+};
 
-// ─────────────────────────────────────────────
-//  STATE
-// ─────────────────────────────────────────────
-let board, current, next, score, level, lines, gameRunning, paused, animId, dropCounter, lastTime;
+function loadBindings() {
+  try {
+    const s = localStorage.getItem('mc-tetris-bindings');
+    if (s) return JSON.parse(s);
+  } catch (e) { /* ignore */ }
+  return JSON.parse(JSON.stringify(DEFAULT_BINDINGS));
+}
+function saveBindings() {
+  localStorage.setItem('mc-tetris-bindings', JSON.stringify(bindings));
+}
+let bindings = loadBindings();
 
-function initState() {
-  board       = Array.from({length: ROWS}, () => Array(COLS).fill(null));
-  score       = 0;
-  level       = 1;
-  lines       = 0;
-  gameRunning = false;
-  paused      = false;
-  dropCounter = 0;
-  lastTime    = 0;
-  current     = null;
-  next        = randomPiece();
-  updateHUD();
+function keyCodeToLabel(code) {
+  if (!code) return '—';
+  const MAP = {
+    ArrowLeft:'←', ArrowRight:'→', ArrowUp:'↑', ArrowDown:'↓',
+    Space:'Space', ShiftLeft:'L.Shift', ShiftRight:'R.Shift',
+    ControlLeft:'L.Ctrl', ControlRight:'R.Ctrl',
+    AltLeft:'L.Alt', AltRight:'R.Alt',
+    Enter:'Enter', Tab:'Tab', Escape:'Esc', Backspace:'Bksp',
+    CapsLock:'Caps',
+  };
+  if (MAP[code]) return MAP[code];
+  if (code.startsWith('Key'))    return code.slice(3);
+  if (code.startsWith('Digit'))  return code.slice(5);
+  if (code.startsWith('Numpad')) return 'Num' + code.slice(6);
+  return code;
 }
 
 // ─────────────────────────────────────────────
-//  PIECE FACTORY
+//  PIECE HELPERS
 // ─────────────────────────────────────────────
 function randomPiece() {
   const types = Object.keys(SHAPES);
   const type  = types[Math.floor(Math.random() * types.length)];
   const shape = SHAPES[type].map(r => [...r]);
-  return {
-    type,
-    shape,
-    x: Math.floor((COLS - shape[0].length) / 2),
-    y: 0,
-  };
+  return { type, shape, x: Math.floor((COLS - shape[0].length) / 2), y: 0 };
 }
 
-function spawnPiece() {
-  current = next;
-  next    = randomPiece();
-  if (collides(current.shape, current.x, current.y)) {
-    gameOver();
-  }
-}
-
-// ─────────────────────────────────────────────
-//  COLLISION
-// ─────────────────────────────────────────────
-function collides(shape, ox, oy) {
-  for (let r = 0; r < shape.length; r++) {
-    for (let c = 0; c < shape[r].length; c++) {
-      if (!shape[r][c]) continue;
-      const nx = ox + c;
-      const ny = oy + r;
-      if (nx < 0 || nx >= COLS || ny >= ROWS) return true;
-      if (ny >= 0 && board[ny][nx]) return true;
-    }
-  }
-  return false;
-}
-
-// ─────────────────────────────────────────────
-//  ROTATION
-// ─────────────────────────────────────────────
-function rotate(shape) {
-  const N = shape.length;
-  const M = shape[0].length;
-  const rotated = Array.from({length: M}, () => Array(N).fill(0));
+function rotateMat(shape) {
+  const N = shape.length, M = shape[0].length;
+  const out = Array.from({length: M}, () => Array(N).fill(0));
   for (let r = 0; r < N; r++)
     for (let c = 0; c < M; c++)
-      rotated[c][N - 1 - r] = shape[r][c];
-  return rotated;
-}
-
-function tryRotate() {
-  const rotated = rotate(current.shape);
-  // Simplified wall-kick: try center, then shift left/right up to 2 cells (not full SRS tables)
-  for (const offset of [0, -1, 1, -2, 2]) {
-    if (!collides(rotated, current.x + offset, current.y)) {
-      current.shape = rotated;
-      current.x += offset;
-      return;
-    }
-  }
+      out[c][N - 1 - r] = shape[r][c];
+  return out;
 }
 
 // ─────────────────────────────────────────────
-//  LOCKING & LINE CLEAR
+//  DRAWING HELPERS
 // ─────────────────────────────────────────────
-function lockPiece() {
-  for (let r = 0; r < current.shape.length; r++) {
-    for (let c = 0; c < current.shape[r].length; c++) {
-      if (!current.shape[r][c]) continue;
-      const ny = current.y + r;
-      if (ny < 0) { gameOver(); return; }
-      board[ny][current.x + c] = current.type;
-    }
-  }
-  clearLines();
-  spawnPiece();
-}
-
-function clearLines() {
-  let cleared = 0;
-  for (let r = ROWS - 1; r >= 0; r--) {
-    if (board[r].every(c => c !== null)) {
-      board.splice(r, 1);
-      board.unshift(Array(COLS).fill(null));
-      cleared++;
-      r++; // re-check same row index
-    }
-  }
-  if (cleared > 0) {
-    lines += cleared;
-    score += SCORE_TABLE[cleared] * level;
-    level = Math.floor(lines / 10) + 1;
-    updateHUD();
-  }
-}
-
-// ─────────────────────────────────────────────
-//  MOVEMENT
-// ─────────────────────────────────────────────
-function moveLeft()  { if (!collides(current.shape, current.x - 1, current.y)) current.x--; }
-function moveRight() { if (!collides(current.shape, current.x + 1, current.y)) current.x++; }
-
-function softDrop() {
-  if (!collides(current.shape, current.x, current.y + 1)) {
-    current.y++;
-    score++;
-    updateHUD();
-  } else {
-    lockPiece();
-  }
-}
-
-function hardDrop() {
-  while (!collides(current.shape, current.x, current.y + 1)) {
-    current.y++;
-    score += 2;
-  }
-  lockPiece();
-  updateHUD();
-}
-
-// ─────────────────────────────────────────────
-//  GHOST PIECE (shadow)
-// ─────────────────────────────────────────────
-function ghostY() {
-  let gy = current.y;
-  while (!collides(current.shape, current.x, gy + 1)) gy++;
-  return gy;
-}
-
-// ─────────────────────────────────────────────
-//  DRAWING
-// ─────────────────────────────────────────────
-function drawBlock(ctx, x, y, type, alpha = 1) {
+function drawBlock(ctx, x, y, type, B, alpha = 1) {
   const [face, highlight, shadow] = BLOCK_COLORS[type];
-  const px = x * BLOCK;
-  const py = y * BLOCK;
-  const S  = BLOCK;
-
+  const px = x * B, py = y * B;
   ctx.globalAlpha = alpha;
-
-  // Face
   ctx.fillStyle = face;
-  ctx.fillRect(px, py, S, S);
-
-  // Pixel noise for texture feel
+  ctx.fillRect(px, py, B, B);
   ctx.globalAlpha = alpha * TEXTURE_NOISE_ALPHA;
   ctx.fillStyle = '#000';
-  for (let i = 0; i < 6; i++) {
-    const nx = px + Math.floor(Math.random() * S);
-    const ny = py + Math.floor(Math.random() * S);
-    ctx.fillRect(nx, ny, 3, 3);
-  }
+  for (let i = 0; i < 5; i++)
+    ctx.fillRect(px + Math.floor(Math.random() * B), py + Math.floor(Math.random() * B), 2, 2);
   ctx.globalAlpha = alpha;
-
-  // Highlight (top-left bevel)
   ctx.fillStyle = highlight;
-  ctx.fillRect(px,       py,       S,   3);
-  ctx.fillRect(px,       py,       3,   S);
-
-  // Shadow (bottom-right bevel)
+  ctx.fillRect(px, py, B, 3);
+  ctx.fillRect(px, py, 3, B);
   ctx.fillStyle = shadow;
-  ctx.fillRect(px,       py + S - 3, S,   3);
-  ctx.fillRect(px + S - 3, py,       3,   S);
-
-  // Grid lines
+  ctx.fillRect(px, py + B - 3, B, 3);
+  ctx.fillRect(px + B - 3, py, 3, B);
   ctx.globalAlpha = alpha * 0.25;
   ctx.strokeStyle = '#000';
   ctx.lineWidth = 1;
-  ctx.strokeRect(px + 0.5, py + 0.5, S - 1, S - 1);
+  ctx.strokeRect(px + 0.5, py + 0.5, B - 1, B - 1);
   ctx.globalAlpha = alpha;
 }
 
-function drawBoard() {
-  // Background grid
-  ctx.fillStyle = '#1a1a2e';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Faint grid lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-  ctx.lineWidth = 1;
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      ctx.strokeRect(c * BLOCK + 0.5, r * BLOCK + 0.5, BLOCK, BLOCK);
-    }
-  }
-
-  // Placed blocks
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      if (board[r][c]) drawBlock(ctx, c, r, board[r][c]);
-    }
-  }
-}
-
-function drawGhost() {
-  const gy = ghostY();
-  if (gy === current.y) return;
-  for (let r = 0; r < current.shape.length; r++) {
-    for (let c = 0; c < current.shape[r].length; c++) {
-      if (!current.shape[r][c]) continue;
-      drawBlock(ctx, current.x + c, gy + r, current.type, 0.22);
-    }
-  }
-}
-
-function drawCurrent() {
-  for (let r = 0; r < current.shape.length; r++) {
-    for (let c = 0; c < current.shape[r].length; c++) {
-      if (!current.shape[r][c]) continue;
-      drawBlock(ctx, current.x + c, current.y + r, current.type);
-    }
-  }
-}
-
-function drawNextPanel() {
-  nextCtx.fillStyle = '#2a2a2a';
-  nextCtx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
-
-  const shape  = next.shape;
-  const cols   = shape[0].length;
-  const rows   = shape.length;
-  const cellSz = 24;
-  const offX   = Math.floor((nextCanvas.width  - cols * cellSz) / 2);
-  const offY   = Math.floor((nextCanvas.height - rows * cellSz) / 2);
-
-  // temporarily scale draw
+function drawNextPiece(ctx, canvasEl, piece, cellSz) {
+  ctx.fillStyle = '#2a2a2a';
+  ctx.fillRect(0, 0, canvasEl.width, canvasEl.height);
+  const shape = piece.shape;
+  const cols  = shape[0].length, rows = shape.length;
+  const offX  = Math.floor((canvasEl.width  - cols * cellSz) / 2);
+  const offY  = Math.floor((canvasEl.height - rows * cellSz) / 2);
+  const [face, hl, sh] = BLOCK_COLORS[piece.type];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       if (!shape[r][c]) continue;
-      const px = offX + c * cellSz;
-      const py = offY + r * cellSz;
-      const S  = cellSz;
-      const [face, highlight, shadow] = BLOCK_COLORS[next.type];
-
-      nextCtx.fillStyle = face;
-      nextCtx.fillRect(px, py, S, S);
-
-      nextCtx.fillStyle = highlight;
-      nextCtx.fillRect(px,     py,     S, 2);
-      nextCtx.fillRect(px,     py,     2, S);
-
-      nextCtx.fillStyle = shadow;
-      nextCtx.fillRect(px,     py + S - 2, S, 2);
-      nextCtx.fillRect(px + S - 2, py,     2, S);
-
-      nextCtx.globalAlpha = 0.2;
-      nextCtx.strokeStyle = '#000';
-      nextCtx.lineWidth = 1;
-      nextCtx.strokeRect(px + 0.5, py + 0.5, S - 1, S - 1);
-      nextCtx.globalAlpha = 1;
+      const px = offX + c * cellSz, py = offY + r * cellSz, S = cellSz;
+      ctx.fillStyle = face; ctx.fillRect(px, py, S, S);
+      ctx.fillStyle = hl;   ctx.fillRect(px, py, S, 2); ctx.fillRect(px, py, 2, S);
+      ctx.fillStyle = sh;   ctx.fillRect(px, py + S - 2, S, 2); ctx.fillRect(px + S - 2, py, 2, S);
+      ctx.globalAlpha = 0.2;
+      ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
+      ctx.strokeRect(px + 0.5, py + 0.5, S - 1, S - 1);
+      ctx.globalAlpha = 1;
     }
   }
 }
 
 // ─────────────────────────────────────────────
-//  PAUSE OVERLAY ON CANVAS
+//  PLAYER FACTORY
 // ─────────────────────────────────────────────
-function drawPauseScreen() {
-  ctx.fillStyle = 'rgba(0,0,0,0.55)';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#ffff55';
-  ctx.font = "bold 14px 'Press Start 2P', monospace";
-  ctx.textAlign = 'center';
-  ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2 - 10);
-  ctx.font = "8px 'Press Start 2P', monospace";
-  ctx.fillStyle = '#aaa';
-  ctx.fillText('Press P to resume', canvas.width / 2, canvas.height / 2 + 18);
-  ctx.textAlign = 'left';
-}
+function createPlayer(id, canvasEl, nextEl, hudEls, B) {
+  const ctx     = canvasEl.getContext('2d');
+  const nextCtx = nextEl.getContext('2d');
+  const nextCellSz = Math.floor(nextEl.width / 5);
 
-// ─────────────────────────────────────────────
-//  HUD
-// ─────────────────────────────────────────────
-function updateHUD() {
-  document.getElementById('score-display').textContent = score;
-  document.getElementById('level-display').textContent = level;
-  document.getElementById('lines-display').textContent = lines;
-}
+  const p = {
+    id, canvasEl, ctx, nextEl, nextCtx, hudEls, B, nextCellSz,
+    board: null, current: null, next: null,
+    score: 0, level: 1, lines: 0,
+    alive: false, dead: false, paused: false,
+    dropCounter: 0,
 
-// ─────────────────────────────────────────────
-//  GAME LOOP
-// ─────────────────────────────────────────────
-function dropInterval() {
-  // Speed increases with level (ms per drop)
-  return Math.max(80, 1000 - (level - 1) * 90);
-}
+    init() {
+      this.board       = Array.from({length: ROWS}, () => Array(COLS).fill(null));
+      this.score       = 0; this.level = 1; this.lines = 0;
+      this.alive       = true; this.dead = false; this.paused = false;
+      this.dropCounter = 0;
+      this.next        = randomPiece();
+      this.spawnPiece();
+      this.updateHUD();
+    },
 
-function gameLoop(timestamp) {
-  if (!gameRunning) return;
-
-  const delta = timestamp - lastTime;
-  lastTime = timestamp;
-
-  if (!paused) {
-    dropCounter += delta;
-    if (dropCounter >= dropInterval()) {
-      dropCounter = 0;
-      if (!collides(current.shape, current.x, current.y + 1)) {
-        current.y++;
-      } else {
-        lockPiece();
+    spawnPiece() {
+      this.current = this.next;
+      this.next    = randomPiece();
+      if (this.collides(this.current.shape, this.current.x, this.current.y)) {
+        this.die();
       }
-    }
-    drawBoard();
-    drawGhost();
-    drawCurrent();
-    drawNextPanel();
-  } else {
-    drawPauseScreen();
+    },
+
+    collides(shape, ox, oy) {
+      for (let r = 0; r < shape.length; r++)
+        for (let c = 0; c < shape[r].length; c++) {
+          if (!shape[r][c]) continue;
+          const nx = ox + c, ny = oy + r;
+          if (nx < 0 || nx >= COLS || ny >= ROWS) return true;
+          if (ny >= 0 && this.board[ny][nx]) return true;
+        }
+      return false;
+    },
+
+    die() {
+      this.alive = false;
+      this.dead  = true;
+      this._drawDeadScreen();
+    },
+
+    lockPiece() {
+      for (let r = 0; r < this.current.shape.length; r++)
+        for (let c = 0; c < this.current.shape[r].length; c++) {
+          if (!this.current.shape[r][c]) continue;
+          const ny = this.current.y + r;
+          if (ny < 0) { this.die(); return; }
+          this.board[ny][this.current.x + c] = this.current.type;
+        }
+      this.clearLines();
+      this.spawnPiece();
+    },
+
+    clearLines() {
+      let cleared = 0;
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (this.board[r].every(c => c !== null)) {
+          this.board.splice(r, 1);
+          this.board.unshift(Array(COLS).fill(null));
+          cleared++; r++;
+        }
+      }
+      if (cleared > 0) {
+        this.lines += cleared;
+        this.score += SCORE_TABLE[Math.min(cleared, SCORE_TABLE.length - 1)] * this.level;
+        this.level  = Math.floor(this.lines / 10) + 1;
+        this.updateHUD();
+      }
+    },
+
+    moveLeft()  { if (!this.collides(this.current.shape, this.current.x - 1, this.current.y)) this.current.x--; },
+    moveRight() { if (!this.collides(this.current.shape, this.current.x + 1, this.current.y)) this.current.x++; },
+
+    softDrop() {
+      if (!this.collides(this.current.shape, this.current.x, this.current.y + 1)) {
+        this.current.y++; this.score++; this.updateHUD();
+      } else { this.lockPiece(); }
+    },
+
+    hardDrop() {
+      while (!this.collides(this.current.shape, this.current.x, this.current.y + 1)) {
+        this.current.y++; this.score += 2;
+      }
+      this.lockPiece(); this.updateHUD();
+    },
+
+    tryRotate() {
+      const rotated = rotateMat(this.current.shape);
+      // Simplified wall-kick: try center, then shift left/right up to 2 cells (not full SRS tables)
+      for (const off of [0, -1, 1, -2, 2]) {
+        if (!this.collides(rotated, this.current.x + off, this.current.y)) {
+          this.current.shape = rotated;
+          this.current.x += off;
+          return;
+        }
+      }
+    },
+
+    ghostY() {
+      let gy = this.current.y;
+      while (!this.collides(this.current.shape, this.current.x, gy + 1)) gy++;
+      return gy;
+    },
+
+    update(delta) {
+      if (!this.alive || this.paused) return;
+      this.dropCounter += delta;
+      const interval = Math.max(80, 1000 - (this.level - 1) * 90);
+      if (this.dropCounter >= interval) {
+        this.dropCounter = 0;
+        if (!this.collides(this.current.shape, this.current.x, this.current.y + 1)) {
+          this.current.y++;
+        } else {
+          this.lockPiece();
+        }
+      }
+    },
+
+    render() {
+      if (this.dead) return;
+      // background
+      this.ctx.fillStyle = '#1a1a2e';
+      this.ctx.fillRect(0, 0, this.canvasEl.width, this.canvasEl.height);
+      this.ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      this.ctx.lineWidth = 1;
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
+          this.ctx.strokeRect(c * this.B + 0.5, r * this.B + 0.5, this.B, this.B);
+      // placed blocks
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
+          if (this.board[r][c]) drawBlock(this.ctx, c, r, this.board[r][c], this.B);
+      // ghost + current
+      if (this.alive) {
+        const gy = this.ghostY();
+        if (gy !== this.current.y)
+          for (let r = 0; r < this.current.shape.length; r++)
+            for (let c = 0; c < this.current.shape[r].length; c++)
+              if (this.current.shape[r][c])
+                drawBlock(this.ctx, this.current.x + c, gy + r, this.current.type, this.B, 0.22);
+        for (let r = 0; r < this.current.shape.length; r++)
+          for (let c = 0; c < this.current.shape[r].length; c++)
+            if (this.current.shape[r][c])
+              drawBlock(this.ctx, this.current.x + c, this.current.y + r, this.current.type, this.B);
+      }
+      drawNextPiece(this.nextCtx, this.nextEl, this.next, this.nextCellSz);
+      if (this.paused) this._drawPauseScreen();
+    },
+
+    _drawPauseScreen() {
+      const cw = this.canvasEl.width, ch = this.canvasEl.height;
+      const fs = Math.floor(this.B * 0.47);
+      this.ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      this.ctx.fillRect(0, 0, cw, ch);
+      this.ctx.fillStyle = '#ffff55';
+      this.ctx.font = `bold ${fs}px 'Press Start 2P',monospace`;
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText('PAUSED', cw / 2, ch / 2 - 8);
+      this.ctx.font = `${Math.floor(fs * 0.57)}px 'Press Start 2P',monospace`;
+      this.ctx.fillStyle = '#aaa';
+      this.ctx.fillText('press pause to resume', cw / 2, ch / 2 + 18);
+      this.ctx.textAlign = 'left';
+    },
+
+    _drawDeadScreen() {
+      const cw = this.canvasEl.width, ch = this.canvasEl.height;
+      const fs = Math.floor(this.B * 0.47);
+      this.ctx.fillStyle = 'rgba(120,0,0,0.6)';
+      this.ctx.fillRect(0, 0, cw, ch);
+      this.ctx.fillStyle = '#ff5555';
+      this.ctx.font = `bold ${fs}px 'Press Start 2P',monospace`;
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText('☠ OUT ☠', cw / 2, ch / 2 - 8);
+      this.ctx.font = `${Math.floor(fs * 0.57)}px 'Press Start 2P',monospace`;
+      this.ctx.fillStyle = '#ffff55';
+      this.ctx.fillText('Score: ' + this.score, cw / 2, ch / 2 + 20);
+      this.ctx.textAlign = 'left';
+    },
+
+    handleKey(code) {
+      const keys = bindings[`p${this.id}`];
+      // Only act if this key belongs to this player
+      if (!Object.values(keys).includes(code)) return;
+      if (code === keys.pause) {
+        this.paused = !this.paused;
+        return;
+      }
+      if (!this.alive || this.paused) return;
+      if      (code === keys.left)     this.moveLeft();
+      else if (code === keys.right)    this.moveRight();
+      else if (code === keys.rotate)   this.tryRotate();
+      else if (code === keys.softDrop) this.softDrop();
+      else if (code === keys.hardDrop) this.hardDrop();
+    },
+
+    updateHUD() {
+      if (!this.hudEls) return;
+      this.hudEls.score.textContent = this.score;
+      this.hudEls.level.textContent = this.level;
+      this.hudEls.lines.textContent = this.lines;
+    },
+
+    drawIdle() {
+      this.ctx.fillStyle = '#1a1a2e';
+      this.ctx.fillRect(0, 0, this.canvasEl.width, this.canvasEl.height);
+      this.ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      this.ctx.lineWidth = 1;
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
+          this.ctx.strokeRect(c * this.B + 0.5, r * this.B + 0.5, this.B, this.B);
+      this.nextCtx.fillStyle = '#2a2a2a';
+      this.nextCtx.fillRect(0, 0, this.nextEl.width, this.nextEl.height);
+    },
+  };
+
+  return p;
+}
+
+// ─────────────────────────────────────────────
+//  SOLO GAME
+// ─────────────────────────────────────────────
+const soloHudEls = {
+  score: document.getElementById('solo-score'),
+  level: document.getElementById('solo-level'),
+  lines: document.getElementById('solo-lines'),
+};
+let soloPlayer  = createPlayer(1, document.getElementById('solo-canvas'),
+                                  document.getElementById('solo-next'),
+                                  soloHudEls, BLOCK_SOLO);
+let soloAnimId  = null;
+let soloLastTs  = 0;
+let soloRunning = false;
+
+function startSolo() {
+  if (soloAnimId) cancelAnimationFrame(soloAnimId);
+  soloPlayer = createPlayer(1, document.getElementById('solo-canvas'),
+                               document.getElementById('solo-next'),
+                               soloHudEls, BLOCK_SOLO);
+  soloPlayer.init();
+  document.getElementById('solo-overlay').style.display = 'none';
+  soloRunning = true;
+  soloLastTs  = performance.now();
+  soloAnimId  = requestAnimationFrame(soloLoop);
+}
+
+function soloLoop(ts) {
+  if (!soloRunning) return;
+  const delta = ts - soloLastTs;
+  soloLastTs  = ts;
+  soloPlayer.update(delta);
+  soloPlayer.render();
+  if (soloPlayer.dead) {
+    soloRunning = false;
+    showSoloGameOver();
+    return;
   }
-
-  animId = requestAnimationFrame(gameLoop);
+  soloAnimId = requestAnimationFrame(soloLoop);
 }
 
-// ─────────────────────────────────────────────
-//  START / GAME OVER
-// ─────────────────────────────────────────────
-function startGame() {
-  initState();
-  gameRunning = true;
-  spawnPiece();
-  updateHUD();
-  document.getElementById('overlay').style.display = 'none';
-  lastTime = performance.now();
-  animId   = requestAnimationFrame(gameLoop);
-}
-
-function gameOver() {
-  gameRunning = false;
-  cancelAnimationFrame(animId);
-
-  // Flash the board red, then show overlay
-  ctx.fillStyle = 'rgba(180,0,0,0.4)';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  const overlay = document.getElementById('overlay');
-  overlay.innerHTML = `
+function showSoloGameOver() {
+  const ov = document.getElementById('solo-overlay');
+  ov.innerHTML = `
     <h1>☠ GAME OVER ☠</h1>
-    <div id="final-score">Score: ${score}</div>
-    <p>Level ${level} &nbsp;|&nbsp; ${lines} lines cleared</p>
-    <button class="mc-btn" id="start-btn">▶ PLAY AGAIN</button>
+    <div class="final-score">Score: ${soloPlayer.score}</div>
+    <p>Level ${soloPlayer.level} &nbsp;|&nbsp; ${soloPlayer.lines} lines</p>
+    <button class="mc-btn" id="solo-start-btn">▶ PLAY AGAIN</button>
   `;
-  overlay.style.display = 'flex';
-  document.getElementById('start-btn').addEventListener('click', startGame);
+  ov.style.display = 'flex';
+  document.getElementById('solo-start-btn').addEventListener('click', startSolo);
 }
 
 // ─────────────────────────────────────────────
-//  INPUT
+//  VS GAME
 // ─────────────────────────────────────────────
+const vsP1HudEls = {
+  score: document.getElementById('vs-p1-score'),
+  level: document.getElementById('vs-p1-level'),
+  lines: document.getElementById('vs-p1-lines'),
+};
+const vsP2HudEls = {
+  score: document.getElementById('vs-p2-score'),
+  level: document.getElementById('vs-p2-level'),
+  lines: document.getElementById('vs-p2-lines'),
+};
+let vsPlayer1  = createPlayer(1, document.getElementById('vs-p1-canvas'),
+                                  document.getElementById('vs-p1-next'),
+                                  vsP1HudEls, BLOCK_VS);
+let vsPlayer2  = createPlayer(2, document.getElementById('vs-p2-canvas'),
+                                  document.getElementById('vs-p2-next'),
+                                  vsP2HudEls, BLOCK_VS);
+let vsAnimId   = null;
+let vsLastTs   = 0;
+let vsRunning  = false;
+
+function startVS() {
+  if (vsAnimId) cancelAnimationFrame(vsAnimId);
+  vsPlayer1 = createPlayer(1, document.getElementById('vs-p1-canvas'),
+                               document.getElementById('vs-p1-next'),
+                               vsP1HudEls, BLOCK_VS);
+  vsPlayer2 = createPlayer(2, document.getElementById('vs-p2-canvas'),
+                               document.getElementById('vs-p2-next'),
+                               vsP2HudEls, BLOCK_VS);
+  vsPlayer1.init();
+  vsPlayer2.init();
+  document.getElementById('vs-overlay').style.display = 'none';
+  vsRunning = true;
+  vsLastTs  = performance.now();
+  vsAnimId  = requestAnimationFrame(vsLoop);
+}
+
+function vsLoop(ts) {
+  if (!vsRunning) return;
+  const delta = ts - vsLastTs;
+  vsLastTs = ts;
+  vsPlayer1.update(delta);
+  vsPlayer2.update(delta);
+  vsPlayer1.render();
+  vsPlayer2.render();
+  if (vsPlayer1.dead && vsPlayer2.dead) {
+    vsRunning = false;
+    let winnerText;
+    if (vsPlayer1.score > vsPlayer2.score)      winnerText = '🏆 P1 WINS! 🏆';
+    else if (vsPlayer2.score > vsPlayer1.score) winnerText = '🏆 P2 WINS! 🏆';
+    else                                         winnerText = '🤝 DRAW! 🤝';
+    showVSGameOver(winnerText);
+    return;
+  }
+  vsAnimId = requestAnimationFrame(vsLoop);
+}
+
+function showVSGameOver(winnerText) {
+  const ov = document.getElementById('vs-overlay');
+  ov.innerHTML = `
+    <h1>${winnerText}</h1>
+    <div class="final-score">P1: ${vsPlayer1.score} &nbsp;|&nbsp; P2: ${vsPlayer2.score}</div>
+    <p>P1 lines: ${vsPlayer1.lines} &nbsp;|&nbsp; P2 lines: ${vsPlayer2.lines}</p>
+    <button class="mc-btn" id="vs-start-btn">▶ PLAY AGAIN</button>
+  `;
+  ov.style.display = 'flex';
+  document.getElementById('vs-start-btn').addEventListener('click', startVS);
+}
+
+// ─────────────────────────────────────────────
+//  CONTROLS TAB — REBIND UI
+// ─────────────────────────────────────────────
+let rebindState = null; // { player, action, cell }
+
+function renderBindingsTable() {
+  const tbody = document.getElementById('bindings-tbody');
+  tbody.innerHTML = '';
+  for (const action of Object.keys(ACTION_LABELS)) {
+    const tr      = document.createElement('tr');
+    const tdLabel = document.createElement('td');
+    tdLabel.textContent = ACTION_LABELS[action];
+
+    const tdP1 = makeKeyCell('p1', action);
+    const tdP2 = makeKeyCell('p2', action);
+
+    tr.appendChild(tdLabel);
+    tr.appendChild(tdP1);
+    tr.appendChild(tdP2);
+    tbody.appendChild(tr);
+  }
+}
+
+function makeKeyCell(player, action) {
+  const td = document.createElement('td');
+  td.className = 'key-cell';
+  td.dataset.player = player;
+  td.dataset.action = action;
+  const badge = document.createElement('span');
+  badge.className = 'key-badge';
+  badge.textContent = keyCodeToLabel(bindings[player][action]);
+  td.appendChild(badge);
+  td.addEventListener('click', () => startRebind(td));
+  return td;
+}
+
+function startRebind(cell) {
+  if (rebindState) cancelRebind();
+  rebindState = { player: cell.dataset.player, action: cell.dataset.action, cell };
+  cell.classList.add('listening');
+  cell.querySelector('.key-badge').textContent = 'Press key…';
+}
+
+function cancelRebind() {
+  if (!rebindState) return;
+  rebindState.cell.classList.remove('listening');
+  rebindState = null;
+  renderBindingsTable();
+}
+
+document.getElementById('reset-bindings-btn').addEventListener('click', () => {
+  bindings = JSON.parse(JSON.stringify(DEFAULT_BINDINGS));
+  saveBindings();
+  cancelRebind();
+  renderBindingsTable();
+  updateSoloHints();
+  updateVSOverlayInfo();
+});
+
+// ─────────────────────────────────────────────
+//  DYNAMIC HINT PANELS
+// ─────────────────────────────────────────────
+function updateSoloHints() {
+  const k = bindings.p1;
+  document.getElementById('hint-left').textContent   = keyCodeToLabel(k.left);
+  document.getElementById('hint-right').textContent  = keyCodeToLabel(k.right);
+  document.getElementById('hint-rotate').textContent = keyCodeToLabel(k.rotate);
+  document.getElementById('hint-soft').textContent   = keyCodeToLabel(k.softDrop);
+  document.getElementById('hint-hard').textContent   = keyCodeToLabel(k.hardDrop);
+  document.getElementById('hint-pause').textContent  = keyCodeToLabel(k.pause);
+}
+
+function updateVSOverlayInfo() {
+  const el = document.getElementById('vs-overlay-info');
+  if (!el) return;
+  const k1 = bindings.p1, k2 = bindings.p2;
+  el.textContent =
+    'P1: ' + keyCodeToLabel(k1.left) + '/' + keyCodeToLabel(k1.right) +
+    '  ' + keyCodeToLabel(k1.rotate) + '  ' + keyCodeToLabel(k1.hardDrop) +
+    '   |   P2: ' + keyCodeToLabel(k2.left) + '/' + keyCodeToLabel(k2.right) +
+    '  ' + keyCodeToLabel(k2.rotate) + '  ' + keyCodeToLabel(k2.hardDrop);
+}
+
+// ─────────────────────────────────────────────
+//  TAB SYSTEM
+// ─────────────────────────────────────────────
+let activeTab = 'solo';
+
+function stopSoloGame() {
+  if (!soloRunning) return;
+  soloRunning = false;
+  if (soloAnimId) { cancelAnimationFrame(soloAnimId); soloAnimId = null; }
+  const ov = document.getElementById('solo-overlay');
+  ov.innerHTML = `
+    <h1>⛏ MINECRAFT<br>TETRIS ⛏</h1>
+    <p>Stack blocks, clear lines,<br>survive as long as you can!</p>
+    <button class="mc-btn" id="solo-start-btn">▶ START GAME</button>
+  `;
+  ov.style.display = 'flex';
+  document.getElementById('solo-start-btn').addEventListener('click', startSolo);
+}
+
+function stopVSGame() {
+  if (!vsRunning) return;
+  vsRunning = false;
+  if (vsAnimId) { cancelAnimationFrame(vsAnimId); vsAnimId = null; }
+  const ov = document.getElementById('vs-overlay');
+  ov.innerHTML = `
+    <h1>👥 VS MODE 👥</h1>
+    <p id="vs-overlay-info"></p>
+    <p style="font-size:6px;color:#888">Customise keys in the Controls tab</p>
+    <button class="mc-btn" id="vs-start-btn">▶ START VS</button>
+  `;
+  ov.style.display = 'flex';
+  updateVSOverlayInfo();
+  document.getElementById('vs-start-btn').addEventListener('click', startVS);
+}
+
+function switchTab(name) {
+  if (name === activeTab) return;
+  if (activeTab === 'solo')    stopSoloGame();
+  if (activeTab === 'versus')  stopVSGame();
+  cancelRebind();
+  activeTab = name;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn =>
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab))
+);
+
+// ─────────────────────────────────────────────
+//  KEYBOARD INPUT
+// ─────────────────────────────────────────────
+// Keys that scroll the page — always prevent default when a game is active
+const PAGE_SCROLL_KEYS = new Set(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space']);
+
 document.addEventListener('keydown', e => {
-  if (!gameRunning) return;
-  switch (e.code) {
-    case 'ArrowLeft':  e.preventDefault(); if (!paused) moveLeft();    break;
-    case 'ArrowRight': e.preventDefault(); if (!paused) moveRight();   break;
-    case 'ArrowUp':    e.preventDefault(); if (!paused) tryRotate();   break;
-    case 'ArrowDown':  e.preventDefault(); if (!paused) softDrop();    break;
-    case 'Space':      e.preventDefault(); if (!paused) hardDrop();    break;
-    case 'KeyP':
-      paused = !paused;
-      if (!paused) {
-        lastTime = performance.now();
-        dropCounter = 0;
-      }
-      break;
+  // Controls tab: rebind mode
+  if (rebindState && activeTab === 'controls') {
+    e.preventDefault();
+    if (e.code === 'Escape') { cancelRebind(); return; }
+    bindings[rebindState.player][rebindState.action] = e.code;
+    saveBindings();
+    cancelRebind();
+    updateSoloHints();
+    updateVSOverlayInfo();
+    return;
+  }
+
+  if (activeTab === 'solo' && soloRunning) {
+    if (PAGE_SCROLL_KEYS.has(e.code)) e.preventDefault();
+    soloPlayer.handleKey(e.code);
+  } else if (activeTab === 'versus' && vsRunning) {
+    if (PAGE_SCROLL_KEYS.has(e.code)) e.preventDefault();
+    vsPlayer1.handleKey(e.code);
+    vsPlayer2.handleKey(e.code);
   }
 });
 
-// Touch / swipe support
+// ─────────────────────────────────────────────
+//  TOUCH SUPPORT (solo canvas only)
+// ─────────────────────────────────────────────
 let touchStartX = 0, touchStartY = 0;
-canvas.addEventListener('touchstart', e => {
+const soloCanvasEl = document.getElementById('solo-canvas');
+
+soloCanvasEl.addEventListener('touchstart', e => {
   touchStartX = e.touches[0].clientX;
   touchStartY = e.touches[0].clientY;
 }, {passive: true});
 
-canvas.addEventListener('touchend', e => {
-  if (!gameRunning || paused) return;
+soloCanvasEl.addEventListener('touchend', e => {
+  if (!soloRunning || soloPlayer.paused) return;
   const dx = e.changedTouches[0].clientX - touchStartX;
   const dy = e.changedTouches[0].clientY - touchStartY;
   if (Math.abs(dx) > Math.abs(dy)) {
     if (Math.abs(dx) > SWIPE_THRESHOLD) {
-      if (dx > 0) moveRight(); else moveLeft();
+      if (dx > 0) soloPlayer.moveRight(); else soloPlayer.moveLeft();
     }
   } else {
-    if (dy > SWIPE_THRESHOLD * 1.5) hardDrop();
-    else if (dy < -SWIPE_THRESHOLD) tryRotate();
+    if (dy > SWIPE_THRESHOLD * 1.5) soloPlayer.hardDrop();
+    else if (dy < -SWIPE_THRESHOLD) soloPlayer.tryRotate();
   }
 }, {passive: true});
 
 // ─────────────────────────────────────────────
 //  INIT
 // ─────────────────────────────────────────────
-initState();
-drawNextPanel();
+soloPlayer.drawIdle();
+vsPlayer1.drawIdle();
+vsPlayer2.drawIdle();
+renderBindingsTable();
+updateSoloHints();
+updateVSOverlayInfo();
 
-// Draw an idle board
-ctx.fillStyle = '#1a1a2e';
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-ctx.lineWidth = 1;
-for (let r = 0; r < ROWS; r++)
-  for (let c = 0; c < COLS; c++)
-    ctx.strokeRect(c * BLOCK + 0.5, r * BLOCK + 0.5, BLOCK, BLOCK);
-
-document.getElementById('start-btn').addEventListener('click', startGame);
+document.getElementById('solo-start-btn').addEventListener('click', startSolo);
+document.getElementById('vs-start-btn').addEventListener('click', startVS);
 </script>
 </body>
 </html>
